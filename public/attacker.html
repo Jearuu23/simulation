@@ -1,0 +1,156 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Attacker Panel</title>
+		<!-- <link rel="stylesheet" href="attacker.css" /> -->
+		<style>
+			body {
+				background: #0f172a;
+				color: white;
+				font-family: Arial;
+				margin: 0;
+			}
+
+			.container {
+				width: 90%;
+				margin: auto;
+				padding: 20px;
+			}
+
+			h1 {
+				text-align: center;
+				margin-bottom: 30px;
+			}
+
+			.traffic-section,
+			.analysis-section,
+			.attack-section {
+				background: #1e293b;
+				padding: 20px;
+				margin-bottom: 20px;
+				border-radius: 8px;
+			}
+
+			.packet-list {
+				max-height: 200px;
+				overflow-y: auto;
+			}
+
+			.packet {
+				background: #334155;
+				padding: 10px;
+				margin-bottom: 10px;
+				border-radius: 5px;
+				cursor: pointer;
+			}
+
+			.packet:hover {
+				background: #475569;
+			}
+
+			pre {
+				background: black;
+				padding: 10px;
+				border-radius: 5px;
+				overflow-x: auto;
+			}
+
+			input {
+				padding: 10px;
+				width: 250px;
+			}
+
+			button {
+				padding: 10px 15px;
+				margin-left: 10px;
+				background: #ef4444;
+				border: none;
+				color: white;
+				border-radius: 5px;
+				cursor: pointer;
+			}
+
+			button:hover {
+				background: #dc2626;
+			}
+
+			#result {
+				margin-top: 15px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="container">
+			<h1>⚠ Network Interception Panel</h1>
+
+			<div class="traffic-section">
+				<h2>Captured Packets</h2>
+
+				<div id="packetList" class="packet-list"></div>
+			</div>
+
+			<div class="analysis-section">
+				<h2>Packet Analysis</h2>
+
+				<p><strong>IV:</strong></p>
+				<pre id="iv"></pre>
+
+				<p><strong>Ciphertext:</strong></p>
+				<pre id="cipher"></pre>
+			</div>
+
+			<div class="attack-section">
+				<h2>Attempt Decryption</h2>
+
+				<input type="text" id="keyGuess" placeholder="Enter key guess" />
+
+				<button onclick="attemptDecrypt()">Try Decrypt</button>
+
+				<p id="result"></p>
+			</div>
+		</div>
+
+		<script>
+			let packets = [
+				{
+					iv: [12, 44, 55],
+					data: "9fa1bc88de92ab11",
+				},
+				{
+					iv: [9, 22, 11],
+					data: "aa991bc23ff19cd2",
+				},
+			];
+
+			const packetList = document.getElementById("packetList");
+			const ivDisplay = document.getElementById("iv");
+			const cipherDisplay = document.getElementById("cipher");
+
+			packets.forEach((packet, index) => {
+				const div = document.createElement("div");
+				div.className = "packet";
+				div.innerText = "Packet #" + (index + 1);
+
+				div.onclick = () => {
+					ivDisplay.textContent = JSON.stringify(packet.iv);
+					cipherDisplay.textContent = packet.data;
+				};
+
+				packetList.appendChild(div);
+			});
+
+			function attemptDecrypt() {
+				const guess = document.getElementById("keyGuess").value;
+
+				const result = document.getElementById("result");
+
+				if (guess === "correctkey") {
+					result.innerHTML = "✅ Decryption Successful (demo)";
+				} else {
+					result.innerHTML = "❌ Decryption Failed";
+				}
+			}
+		</script>
+	</body>
+</html>

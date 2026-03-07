@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Login</title>
+
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+				font-family: Arial, Helvetica, sans-serif;
+			}
+
+			body {
+				height: 100vh;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				background: linear-gradient(135deg, #4a6cff, #6f8bff);
+			}
+
+			.login-container {
+				width: 100%;
+				max-width: 350px;
+				background: white;
+				padding: 30px;
+				border-radius: 12px;
+				box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+			}
+
+			.login-container h2 {
+				text-align: center;
+				margin-bottom: 20px;
+				color: #4a6cff;
+			}
+
+			.login-container select {
+				width: 100%;
+				padding: 12px;
+				border: 1px solid #ddd;
+				border-radius: 8px;
+				font-size: 14px;
+				margin-bottom: 0.8rem;
+				background-color: #eee;
+				box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+			}
+
+			.login-btn {
+				width: 100%;
+				padding: 12px;
+				border: none;
+				background: #4a6cff;
+				color: white;
+				font-size: 16px;
+				border-radius: 8px;
+				cursor: pointer;
+			}
+
+			.login-btn:hover {
+				background: #3956d6;
+			}
+
+			.error {
+				color: red;
+				font-size: 13px;
+				margin-top: 10px;
+				text-align: center;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="login-container">
+			<h2>Select Role</h2>
+			<select name="role" id="role">
+				<option value="userA">User A</option>
+				<option value="userB">User B</option>
+				<option value="attacker">Attacker</option>
+			</select>
+
+			<button class="login-btn" onclick="login()">Login</button>
+
+			<div class="error" id="error"></div>
+		</div>
+
+		<script>
+			function login() {
+				const role = document.getElementById("role").value;
+				if (role === "userA" || role === "userB") {
+					window.location.href = `user.html?role=${role}`;
+				} else if (role === "attacker") {
+					window.location.href = `attacker.html`;
+				} else {
+					document.getElementById("error").innerText = "Please select a valid role.";
+				}
+			}
+		</script>
+	</body>
+</html>

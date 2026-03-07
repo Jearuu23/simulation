@@ -1,0 +1,10 @@
+{
+	"dependencies": {
+		"cors": "^2.8.6",
+		"daemon": "^1.1.0",
+		"express": "^5.2.1"
+	},
+	"scripts": {
+		"dev": "node server.js"
+	}
+}

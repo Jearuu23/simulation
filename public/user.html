@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<title>Chat</title>
+	</head>
+
+	<body>
+		<div class="chat">
+			<div class="chat-header">Chat Message</div>
+
+			<div class="chat-messages" id="messages">
+				<!-- <div class="message-row other">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="avatar">
+						<path
+							d="M320 312C386.3 312 440 258.3 440 192C440 125.7 386.3 72 320 72C253.7 72 200 125.7 200 192C200 258.3 253.7 312 320 312zM290.3 368C191.8 368 112 447.8 112 546.3C112 562.7 125.3 576 141.7 576L498.3 576C514.7 576 528 562.7 528 546.3C528 447.8 448.2 368 349.7 368L290.3 368z" />
+					</svg>
+					<div class="message">Hello 👋 Welcome to the chat</div>
+				</div>
+
+				<div class="message-row user">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="avatar">
+						<path
+							d="M320 312C386.3 312 440 258.3 440 192C440 125.7 386.3 72 320 72C253.7 72 200 125.7 200 192C200 258.3 253.7 312 320 312zM290.3 368C191.8 368 112 447.8 112 546.3C112 562.7 125.3 576 141.7 576L498.3 576C514.7 576 528 562.7 528 546.3C528 447.8 448.2 368 349.7 368L290.3 368z" />
+					</svg>
+					<div class="message">Hi! This UI looks nice.</div>
+				</div> -->
+			</div>
+
+			<div class="chat-input">
+				<input id="input" placeholder="Type message..." />
+				<button onclick="sendMessage()">Send</button>
+			</div>
+		</div>
+
+		<script>
+			const messages = document.getElementById("messages");
+			const input = document.getElementById("input");
+			const role = new URLSearchParams(window.location.search).get("role");
+
+			async function sendMessage() {
+				const text = input.value.trim();
+				if (!text) return;
+				const message = {
+					from: role,
+					text,
+				};
+				renderMessages(message);
+				input.value = "";
+
+				messages.scrollTop = messages.scrollHeight;
+				const res = await fetch("http://localhost:3000/message", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(message),
+				});
+
+				const data = await res.json();
+			}
+
+			input.addEventListener("keypress", (e) => {
+				if (e.key === "Enter") sendMessage();
+			});
+
+			document.addEventListener("DOMContentLoaded", () => {
+				async function fetchMessages() {
+					const messagesJSON = await fetch("http://localhost:3000/message")
+						.then((res) => res.json())
+						.catch(console.error);
+					const secretKey = messagesJSON.secretKey;
+
+					loopMessage(messagesJSON.messages);
+				}
+
+				fetchMessages();
+			});
+
+			function loopMessage(messages) {
+				for (let i = 0; i < messages.length; i++) {
+					renderMessages(messages[i]);
+				}
+			}
+
+			function renderMessages(message) {
+				const row = document.createElement("div");
+
+				let className = message.from === role ? "message-row user" : "message-row other";
+				row.innerHTML = `
+				<div class="${className}">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="avatar">
+						<path
+							d="M320 312C386.3 312 440 258.3 440 192C440 125.7 386.3 72 320 72C253.7 72 200 125.7 200 192C200 258.3 253.7 312 320 312zM290.3 368C191.8 368 112 447.8 112 546.3C112 562.7 125.3 576 141.7 576L498.3 576C514.7 576 528 562.7 528 546.3C528 447.8 448.2 368 349.7 368L290.3 368z" />
+					</svg>
+					<div class="message">${message.text}</div>
+				</div>`;
+
+				messages.appendChild(row);
+			}
+		</script>
+	</body>
+</html>
