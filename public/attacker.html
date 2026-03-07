@@ -1,156 +1,159 @@
 <!doctype html>
-<html>
+<html lang="en">
 	<head>
-		<title>Attacker Panel</title>
-		<!-- <link rel="stylesheet" href="attacker.css" /> -->
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Intrusion Detected - Data Breach</title>
 		<style>
+			:root {
+				--bg: #0a0a0a;
+				--terminal-green: #00ff41;
+				--terminal-dark: #1a1a1a;
+				--error-red: #ff3e3e;
+				--border: #333;
+			}
+
 			body {
-				background: #0f172a;
-				color: white;
-				font-family: Arial;
+				background: var(--bg);
+				color: var(--terminal-green);
+				font-family: "Courier New", Courier, monospace;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
 				margin: 0;
+				overflow: hidden;
 			}
 
-			.container {
-				width: 90%;
-				margin: auto;
-				padding: 20px;
-			}
-
-			h1 {
-				text-align: center;
-				margin-bottom: 30px;
-			}
-
-			.traffic-section,
-			.analysis-section,
-			.attack-section {
-				background: #1e293b;
-				padding: 20px;
-				margin-bottom: 20px;
+			.terminal-container {
+				width: 90vw;
+				height: 85vh;
+				background: var(--terminal-dark);
+				border: 1px solid var(--border);
 				border-radius: 8px;
+				display: flex;
+				flex-direction: column;
+				box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
 			}
 
-			.packet-list {
-				max-height: 200px;
+			.terminal-header {
+				background: #222;
+				padding: 10px;
+				border-bottom: 1px solid var(--border);
+				display: flex;
+				justify-content: space-between;
+				font-size: 0.8rem;
+			}
+
+			.status-pulse {
+				display: inline-block;
+				width: 10px;
+				height: 10px;
+				background: var(--terminal-green);
+				border-radius: 50%;
+				animation: pulse 1s infinite;
+			}
+
+			@keyframes pulse {
+				0% {
+					opacity: 1;
+				}
+				50% {
+					opacity: 0.3;
+				}
+				100% {
+					opacity: 1;
+				}
+			}
+
+			#log-output {
+				flex: 1;
+				padding: 20px;
 				overflow-y: auto;
+				font-size: 0.9rem;
+				line-height: 1.5;
 			}
 
-			.packet {
-				background: #334155;
+			.entry {
+				margin-bottom: 1.5rem;
+				border-left: 2px solid var(--border);
+				padding-left: 10px;
+			}
+
+			.raw-data {
+				color: #888;
+				word-break: break-all;
+				background: #111;
 				padding: 10px;
-				margin-bottom: 10px;
-				border-radius: 5px;
-				cursor: pointer;
+				display: block;
+				margin-top: 5px;
+				border: 1px dashed #444;
 			}
 
-			.packet:hover {
-				background: #475569;
+			.failure-label {
+				color: var(--error-red);
+				font-weight: bold;
 			}
 
-			pre {
-				background: black;
-				padding: 10px;
-				border-radius: 5px;
-				overflow-x: auto;
-			}
-
-			input {
-				padding: 10px;
-				width: 250px;
-			}
-
-			button {
-				padding: 10px 15px;
-				margin-left: 10px;
-				background: #ef4444;
-				border: none;
-				color: white;
-				border-radius: 5px;
-				cursor: pointer;
-			}
-
-			button:hover {
-				background: #dc2626;
-			}
-
-			#result {
-				margin-top: 15px;
+			.timestamp {
+				color: #555;
 			}
 		</style>
 	</head>
-
 	<body>
-		<div class="container">
-			<h1>⚠ Network Interception Panel</h1>
-
-			<div class="traffic-section">
-				<h2>Captured Packets</h2>
-
-				<div id="packetList" class="packet-list"></div>
+		<div class="terminal-container">
+			<div class="terminal-header">
+				<span>PACKET_SNIFFER_v4.2</span>
+				<span>STATUS: <span class="status-pulse"></span> INTERCEPTING...</span>
 			</div>
-
-			<div class="analysis-section">
-				<h2>Packet Analysis</h2>
-
-				<p><strong>IV:</strong></p>
-				<pre id="iv"></pre>
-
-				<p><strong>Ciphertext:</strong></p>
-				<pre id="cipher"></pre>
-			</div>
-
-			<div class="attack-section">
-				<h2>Attempt Decryption</h2>
-
-				<input type="text" id="keyGuess" placeholder="Enter key guess" />
-
-				<button onclick="attemptDecrypt()">Try Decrypt</button>
-
-				<p id="result"></p>
+			<div id="log-output">
+				[SYSTEM] Initializing intercept on http://localhost:3000/message...<br />
+				[SYSTEM] Listening for data packets...<br /><br />
 			</div>
 		</div>
 
 		<script>
-			let packets = [
-				{
-					iv: [12, 44, 55],
-					data: "9fa1bc88de92ab11",
-				},
-				{
-					iv: [9, 22, 11],
-					data: "aa991bc23ff19cd2",
-				},
-			];
+			const logOutput = document.getElementById("log-output");
 
-			const packetList = document.getElementById("packetList");
-			const ivDisplay = document.getElementById("iv");
-			const cipherDisplay = document.getElementById("cipher");
+			async function startIntercept() {
+				try {
+					const res = await fetch("http://localhost:3000/message");
+					const data = await res.json();
 
-			packets.forEach((packet, index) => {
-				const div = document.createElement("div");
-				div.className = "packet";
-				div.innerText = "Packet #" + (index + 1);
-
-				div.onclick = () => {
-					ivDisplay.textContent = JSON.stringify(packet.iv);
-					cipherDisplay.textContent = packet.data;
-				};
-
-				packetList.appendChild(div);
-			});
-
-			function attemptDecrypt() {
-				const guess = document.getElementById("keyGuess").value;
-
-				const result = document.getElementById("result");
-
-				if (guess === "correctkey") {
-					result.innerHTML = "✅ Decryption Successful (demo)";
-				} else {
-					result.innerHTML = "❌ Decryption Failed";
+					if (data.messages && data.messages.length > 0) {
+						renderInterceptedData(data.messages);
+					} else {
+						logOutput.innerHTML += `<div class="entry">[INFO] Server response empty. No messages found.</div>`;
+					}
+				} catch (error) {
+					logOutput.innerHTML += `<div class="entry" style="color:red">[ERROR] Failed to connect to server: ${error.message}</div>`;
 				}
 			}
+
+			function renderInterceptedData(messages) {
+				messages.forEach((msg, index) => {
+					const entry = document.createElement("div");
+					entry.className = "entry";
+					entry.innerHTML = `
+                    <div><span class="timestamp">[${new Date().toLocaleTimeString()}]</span> PACKET #${index + 1} INTERCEPTED</div>
+                    <div>SOURCE_ID: UNKNOWN (ENCRYPTED)</div>
+                    <div>AUTHENTICATION_TAG: <span class="failure-label">MISSING_KEY</span></div>
+                    <div>DATA_PAYLOAD:</div>
+                    <code class="raw-data">
+                        {
+                            "iv": "${msg.iv}",
+                            "ciphertext": "${msg.ciphertext}"
+                        }
+                    </code>
+                    <div class="failure-label">>> DECRYPTION_FAILED: AES-GCM Key Required</div>
+                `;
+					logOutput.appendChild(entry);
+				});
+				logOutput.scrollTop = logOutput.scrollHeight;
+			}
+
+			startIntercept();
+			setInterval(startIntercept, 5000);
 		</script>
 	</body>
 </html>

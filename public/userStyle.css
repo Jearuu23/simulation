@@ -44,10 +44,25 @@ body {
 
 .chat-header {
 	padding: 1rem;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
 	font-size: clamp(1rem, 2vw, 1.2rem);
 	font-weight: 600;
 	color: white;
 	background: var(--primary);
+}
+
+.chat-header button {
+	font-size: clamp(1rem, 2vw, 1.2rem);
+	font-weight: 600;
+	color: white;
+	padding: 0.4rem 0.6rem;
+	background: hsl(from var(--primary) h calc(s + 1) calc(l - 10));
+	box-shadow: 2px 0px 12px rgba(0, 0, 0, 0.5);
+	border: none;
+	border-radius: 0.4rem;
+	cursor: pointer;
 }
 
 /* Messages */
@@ -77,6 +92,9 @@ body {
 	flex-direction: row-reverse;
 }
 
+.message-row.system {
+	justify-content: center;
+}
 /* Avatar */
 
 .avatar {

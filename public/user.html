@@ -3,13 +3,130 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+		<link rel="stylesheet" href="userStyle.css" />
 		<title>Chat</title>
+
+		<style>
+			.modal {
+				position: fixed;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				background: #ffffff;
+				padding: 2rem;
+				border-radius: 0.75rem;
+				box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
+				z-index: 2;
+				width: 320px;
+				max-width: 90%;
+				font-family: Arial, Helvetica, sans-serif;
+			}
+
+			.modal label {
+				font-weight: 600;
+				font-size: 1.6rem;
+				display: block;
+				margin-bottom: 0.8rem;
+				color: #333;
+			}
+
+			.modal input {
+				width: 100%;
+				padding: 0.7rem;
+				font-size: 1.4rem;
+				border: 1px solid #ccc;
+				border-radius: 0.5rem;
+				margin-bottom: 1rem;
+				outline: none;
+				transition:
+					border 0.2s,
+					box-shadow 0.2s;
+			}
+
+			.modal input:focus {
+				border-color: #4a6cff;
+				box-shadow: 0 0 0 3px rgba(74, 108, 255, 0.2);
+			}
+
+			.modal button {
+				margin-top: 0.5rem;
+				padding: 0.6rem 1rem;
+				font-size: 1.4rem;
+				width: 100%;
+				background-color: #4a6cff;
+				color: #fff;
+				border: none;
+				border-radius: 0.5rem;
+				cursor: pointer;
+				transition:
+					background 0.2s,
+					transform 0.05s;
+			}
+
+			.modal button:hover {
+				background-color: #6f8bff;
+			}
+
+			.modal button:active {
+				transform: scale(0.97);
+				background-color: #3d57d6;
+			}
+
+			.modal .btnCancel {
+				background-color: #ff4a6c;
+				margin-top: 0.7rem;
+			}
+
+			.modal .btnCancel:hover {
+				background-color: #ff6f8b;
+			}
+
+			.modal .btnCancel:active {
+				background-color: #e23c5c;
+			}
+
+			.overlay {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(0, 0, 0, 0.45);
+				backdrop-filter: blur(3px);
+				z-index: 1;
+			}
+
+			#changeKeyModal {
+				display: none;
+			}
+		</style>
 	</head>
 
 	<body>
+		<div class="overlay" id="overlay"></div>
+		<!-- modal for change key -->
+		<div class="modal" id="changeKeyModal">
+			<label for="newKey">
+				<label for="newKey">Change Key</label>
+				<input type="password" id="newKey" name="newKey" />
+				<button onclick="changeKey()">Submit</button>
+				<button onclick="hideModal()" class="btnCancel">Cancel</button>
+			</label>
+		</div>
+
+		<!-- modal for decryption secret -->
+		<div class="modal" id="decryptionSecretModal">
+			<label for="secret">Enter Decryption Secret Key</label>
+			<input type="password" id="decryptionSecret" />
+			<button onclick="submitKey()">Submit</button>
+		</div>
+
+		<!-- chat -->
 		<div class="chat">
-			<div class="chat-header">Chat Message</div>
+			<div class="chat-header">
+				<h2>Chat Message</h2>
+				<button onclick="showChangeKeyModal()">Change Key</button>
+			</div>
 
 			<div class="chat-messages" id="messages">
 				<!-- <div class="message-row other">
@@ -30,76 +147,11 @@
 			</div>
 
 			<div class="chat-input">
-				<input id="input" placeholder="Type message..." />
+				<input type="text" id="messageInput" placeholder="Type message..." />
 				<button onclick="sendMessage()">Send</button>
 			</div>
 		</div>
 
-		<script>
-			const messages = document.getElementById("messages");
-			const input = document.getElementById("input");
-			const role = new URLSearchParams(window.location.search).get("role");
-
-			async function sendMessage() {
-				const text = input.value.trim();
-				if (!text) return;
-				const message = {
-					from: role,
-					text,
-				};
-				renderMessages(message);
-				input.value = "";
-
-				messages.scrollTop = messages.scrollHeight;
-				const res = await fetch("http://localhost:3000/message", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify(message),
-				});
-
-				const data = await res.json();
-			}
-
-			input.addEventListener("keypress", (e) => {
-				if (e.key === "Enter") sendMessage();
-			});
-
-			document.addEventListener("DOMContentLoaded", () => {
-				async function fetchMessages() {
-					const messagesJSON = await fetch("http://localhost:3000/message")
-						.then((res) => res.json())
-						.catch(console.error);
-					const secretKey = messagesJSON.secretKey;
-
-					loopMessage(messagesJSON.messages);
-				}
-
-				fetchMessages();
-			});
-
-			function loopMessage(messages) {
-				for (let i = 0; i < messages.length; i++) {
-					renderMessages(messages[i]);
-				}
-			}
-
-			function renderMessages(message) {
-				const row = document.createElement("div");
-
-				let className = message.from === role ? "message-row user" : "message-row other";
-				row.innerHTML = `
-				<div class="${className}">
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="avatar">
-						<path
-							d="M320 312C386.3 312 440 258.3 440 192C440 125.7 386.3 72 320 72C253.7 72 200 125.7 200 192C200 258.3 253.7 312 320 312zM290.3 368C191.8 368 112 447.8 112 546.3C112 562.7 125.3 576 141.7 576L498.3 576C514.7 576 528 562.7 528 546.3C528 447.8 448.2 368 349.7 368L290.3 368z" />
-					</svg>
-					<div class="message">${message.text}</div>
-				</div>`;
-
-				messages.appendChild(row);
-			}
-		</script>
+		<script src="userScript.js"></script>
 	</body>
 </html>

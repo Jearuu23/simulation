@@ -7,17 +7,51 @@ const cors = require("cors");
 app.use(cors());
 app.use(express.json());
 
+// ==========================================================================
+// File system
+// ==========================================================================
+const jsonTemplate = {
+	messages: [],
+};
+
 function readData() {
-	const data = fs.readFileSync("./messages.json", "utf8");
-	return JSON.parse(data);
+	try {
+		if (!fs.existsSync("./messages.json")) {
+			writeData(jsonTemplate);
+			return jsonTemplate;
+		}
+
+		const data = fs.readFileSync("./messages.json", "utf8");
+
+		if (!data.trim()) {
+			writeData(jsonTemplate);
+			return jsonTemplate;
+		}
+
+		const parsed = JSON.parse(data);
+		return parsed;
+	} catch (error) {
+		console.error("Error reading file, using template:", error.message);
+		return jsonTemplate;
+	}
 }
 
 function writeData(data) {
-	fs.writeFileSync("./messages.json", JSON.stringify(data));
+	fs.writeFileSync("./messages.json", JSON.stringify(data, null, 2));
 }
+
+// ==========================================================================
+// Routes
+// ==========================================================================
 
 app.get("/", (req, res) => {
 	res.send("Hello World!");
+});
+
+app.post("/log", (req, res) => {
+	const text = req.body.text;
+	console.log("logging:", text);
+	res.json({ status: "ok" });
 });
 
 // fetch messages
@@ -30,22 +64,12 @@ app.get("/message", (req, res) => {
 app.post("/message", (req, res) => {
 	const messages = readData();
 	const newMessage = req.body;
-	const message = {
-		from: newMessage.from,
-		text: newMessage.text,
-		time: new Date().toISOString(),
-	};
-	messages.messages.push(message);
-	console.log("message: ", message.from, message.text);
+
+	messages.messages.push(newMessage);
 
 	writeData(messages);
 
 	res.send(messages);
-});
-
-app.get("/intercept", (req, res) => {
-	const packets = require(`./packets.json`);
-	res.send(packets);
 });
 
 app.listen(port, () => {
