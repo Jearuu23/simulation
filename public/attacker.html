@@ -131,6 +131,7 @@
 			}
 
 			function renderInterceptedData(messages) {
+				logOutput.innerHTML = `<div class="entry">[SYSTEM] Intercepted ${messages.length} data packets.</div>`;
 				messages.forEach((msg, index) => {
 					const entry = document.createElement("div");
 					entry.className = "entry";
@@ -153,7 +154,7 @@
 			}
 
 			startIntercept();
-			setInterval(startIntercept, 5000);
+			// setInterval(startIntercept, 5000);
 		</script>
 	</body>
 </html>

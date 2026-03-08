@@ -5,6 +5,7 @@ const decryptionSecretModal = document.getElementById("decryptionSecretModal");
 const overlay = document.getElementById("overlay");
 const role = new URLSearchParams(window.location.search).get("role");
 const modal = document.getElementById("changeKeyModal");
+const errorElement = document.getElementById("error");
 
 let secretKey = "";
 
@@ -49,15 +50,26 @@ async function submitKey() {
 	secretKey = decryptionSecretElement.value.trim();
 	if (!secretKey) return alert("Please enter a key!");
 
-	localStorage.setItem("decryptionSecretKey", secretKey);
+	localStorage.setItem("secretKey", secretKey);
 	hideModal();
 	await fetchMessages();
 }
 
 async function fetchMessages() {
-	const messagesJSON = await fetch("http://localhost:3000/message")
-		.then((res) => res.json())
-		.catch(console.error);
+	let messagesJSON = { messages: [] };
+	try {
+		const res = await fetch("http://localhost:3000/message");
+		messagesJSON = await res.json();
+	} catch (error) {
+		errorElement.style.display = "block";
+		errorElement.innerHTML = `<div class="entry" style="color:red">[ERROR] Failed to connect to server: ${error.message}</div>`;
+
+		setTimeout(() => {
+			errorElement.style.display = "none";
+		}, 5000);
+
+		return;
+	}
 
 	renderMessages(messagesJSON.messages);
 }
