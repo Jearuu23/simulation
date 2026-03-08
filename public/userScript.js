@@ -16,6 +16,9 @@ function hideModal() {
 	modal.style.display = "none";
 	overlay.style.display = "none";
 }
+function scrollToBottom() {
+	messagesElement.scrollTop = messagesElement.scrollHeight;
+}
 
 // ==========================================================================
 // change key
@@ -75,7 +78,6 @@ async function fetchMessages() {
 }
 
 fetchMessages();
-// });
 
 // ==========================================================================
 // send message
@@ -83,7 +85,7 @@ fetchMessages();
 async function sendMessage() {
 	const text = messageInput.value.trim();
 	if (!text) {
-		alert("Please enter a message!");
+		// alert("Please enter a message!");
 		return;
 	}
 
@@ -99,7 +101,7 @@ async function sendMessage() {
 	};
 	messageInput.value = "";
 
-	messagesElement.scrollTop = messagesElement.scrollHeight;
+	// messagesElement.scrollTop = messagesElement.scrollHeight;
 
 	const encryptedMessageData = await encryptData(messageData, secretKey);
 	log("sending:", encryptedMessageData.ciphertext);
@@ -142,6 +144,7 @@ async function renderMessages(messages) {
 					</div>`;
 		messagesElement.appendChild(row);
 	}
+	scrollToBottom();
 }
 
 // ==========================================================================
