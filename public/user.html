@@ -11,15 +11,18 @@
 		<div class="overlay" id="overlay"></div>
 		<!-- modal for change key -->
 		<div class="modal" id="changeKeyModal">
+			<h2>Change Key</h2>
 			<label for="newKey">
-				<label for="newKey">Change Key</label>
+				<label for="oldKey">Old Key</label>
+				<input type="password" id="oldKey" name="oldKey" />
+				<label for="newKey">New Key</label>
 				<input type="password" id="newKey" name="newKey" />
 				<button onclick="changeKey()">Submit</button>
 				<button onclick="hideModal()" class="btnCancel">Cancel</button>
 			</label>
 		</div>
 
-		<!-- modal for decryption secret -->
+		<!-- modal for key first time -->
 		<div class="modal" id="decryptionSecretModal">
 			<label for="secret">Enter Decryption Secret Key</label>
 			<input type="password" id="decryptionSecret" />

@@ -3,158 +3,238 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Intrusion Detected - Data Breach</title>
+		<title>Security Audit - Packet Monitor</title>
 		<style>
 			:root {
-				--bg: #0a0a0a;
-				--terminal-green: #00ff41;
-				--terminal-dark: #1a1a1a;
-				--error-red: #ff3e3e;
-				--border: #333;
+				--bg-main: #f4f7f6;
+				--sidebar-bg: #ffffff;
+				--accent-blue: #2563eb;
+				--text-dark: #1e293b;
+				--text-muted: #64748b;
+				--border-color: #e2e8f0;
+				--error-bg: #fef2f2;
+				--error-text: #dc2626;
+				--code-bg: #1e293b;
 			}
 
 			body {
-				background: var(--bg);
-				color: var(--terminal-green);
-				font-family: "Courier New", Courier, monospace;
-				display: flex;
-				justify-content: center;
-				align-items: center;
-				height: 100vh;
+				background: var(--bg-main);
+				color: var(--text-dark);
+				font-family:
+					"Inter",
+					-apple-system,
+					sans-serif;
 				margin: 0;
+				display: flex;
+				height: 100vh;
 				overflow: hidden;
 			}
 
-			.terminal-container {
-				width: 90vw;
-				height: 85vh;
-				background: var(--terminal-dark);
-				border: 1px solid var(--border);
-				border-radius: 8px;
+			/* --- Sidebar / Config --- */
+			aside {
+				width: 320px;
+				background: var(--sidebar-bg);
+				border-right: 1px solid var(--border-color);
 				display: flex;
 				flex-direction: column;
-				box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+				padding: 24px;
 			}
 
-			.terminal-header {
-				background: #222;
-				padding: 10px;
-				border-bottom: 1px solid var(--border);
+			.badge {
+				display: inline-block;
+				padding: 4px 8px;
+				border-radius: 4px;
+				font-size: 0.7rem;
+				font-weight: 700;
+				text-transform: uppercase;
+				margin-bottom: 12px;
+			}
+
+			.badge-live {
+				background: #dcfce7;
+				color: #166534;
+			}
+
+			h1 {
+				font-size: 1.25rem;
+				margin: 0 0 20px 0;
+				letter-spacing: -0.5px;
+			}
+
+			.stat-card {
+				background: var(--bg-main);
+				border-radius: 8px;
+				padding: 16px;
+				margin-bottom: 12px;
+			}
+
+			.stat-label {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				display: block;
+			}
+			.stat-value {
+				font-weight: 600;
+				font-family: monospace;
+			}
+
+			/* --- Main Content --- */
+			main {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				padding: 40px;
+				overflow-y: auto;
+			}
+
+			.intercept-header {
 				display: flex;
 				justify-content: space-between;
-				font-size: 0.8rem;
+				align-items: center;
+				margin-bottom: 30px;
 			}
 
-			.status-pulse {
-				display: inline-block;
-				width: 10px;
-				height: 10px;
-				background: var(--terminal-green);
-				border-radius: 50%;
-				animation: pulse 1s infinite;
+			#packet-feed {
+				display: flex;
+				flex-direction: column;
+				gap: 16px;
 			}
 
-			@keyframes pulse {
-				0% {
-					opacity: 1;
-				}
-				50% {
-					opacity: 0.3;
-				}
-				100% {
-					opacity: 1;
-				}
-			}
-
-			#log-output {
-				flex: 1;
+			.packet-row {
+				background: #fff;
+				border: 1px solid var(--border-color);
+				border-radius: 10px;
 				padding: 20px;
-				overflow-y: auto;
-				font-size: 0.9rem;
-				line-height: 1.5;
+				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+				transition: all 0.2s ease;
 			}
 
-			.entry {
-				margin-bottom: 1.5rem;
-				border-left: 2px solid var(--border);
-				padding-left: 10px;
+			.packet-row:hover {
+				border-color: var(--accent-blue);
 			}
 
-			.raw-data {
-				color: #888;
-				word-break: break-all;
-				background: #111;
-				padding: 10px;
-				display: block;
-				margin-top: 5px;
-				border: 1px dashed #444;
-			}
-
-			.failure-label {
-				color: var(--error-red);
-				font-weight: bold;
+			.packet-top {
+				display: flex;
+				justify-content: space-between;
+				font-size: 0.85rem;
+				margin-bottom: 12px;
+				border-bottom: 1px solid var(--bg-main);
+				padding-bottom: 8px;
 			}
 
 			.timestamp {
-				color: #555;
+				color: var(--text-muted);
+				font-family: monospace;
+			}
+
+			.payload {
+				background: var(--code-bg);
+				color: #e2e8f0;
+				padding: 12px;
+				border-radius: 6px;
+				font-family: "SFMono-Regular", Consolas, monospace;
+				font-size: 0.8rem;
+				overflow-x: auto;
+			}
+
+			.warning-footer {
+				margin-top: 12px;
+				background: var(--error-bg);
+				color: var(--error-text);
+				padding: 8px 12px;
+				border-radius: 4px;
+				font-size: 0.8rem;
+				font-weight: 500;
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+
+			/* --- Scrollbar --- */
+			::-webkit-scrollbar {
+				width: 8px;
+			}
+			::-webkit-scrollbar-track {
+				background: var(--bg-main);
+			}
+			::-webkit-scrollbar-thumb {
+				background: #cbd5e1;
+				border-radius: 4px;
 			}
 		</style>
 	</head>
 	<body>
-		<div class="terminal-container">
-			<div class="terminal-header">
-				<span>PACKET_SNIFFER_v4.2</span>
-				<span>STATUS: <span class="status-pulse"></span> INTERCEPTING...</span>
+		<aside>
+			<span class="badge badge-live">● Live Monitoring</span>
+			<h1>Network Inspector</h1>
+
+			<div class="stat-card">
+				<span class="stat-label">LISTENING ON</span>
+				<span class="stat-value">localhost:3000/message</span>
 			</div>
-			<div id="log-output">
-				[SYSTEM] Initializing intercept on http://localhost:3000/message...<br />
-				[SYSTEM] Listening for data packets...<br /><br />
+
+			<div class="stat-card">
+				<span class="stat-label">ENCRYPTION DETECTED</span>
+				<span class="stat-value">AES-256-GCM</span>
 			</div>
-		</div>
+
+			<div style="margin-top: auto; font-size: 0.75rem; color: var(--text-muted)">
+				Project: Simulation_Alpha_Test<br />
+				User: Security_Admin_01
+			</div>
+		</aside>
+
+		<main>
+			<div class="intercept-header">
+				<h2 style="margin: 0">Intercepted Traffic</h2>
+				<div style="font-size: 0.85rem; color: var(--text-muted)">Results updated: <span id="clock">--:--:--</span></div>
+			</div>
+
+			<div id="packet-feed"></div>
+		</main>
 
 		<script>
-			const logOutput = document.getElementById("log-output");
+			const feed = document.getElementById("packet-feed");
+			const clock = document.getElementById("clock");
 
-			async function startIntercept() {
+			function updateTime() {
+				clock.innerText = new Date().toLocaleTimeString();
+			}
+
+			async function runAudit() {
+				updateTime();
 				try {
 					const res = await fetch("http://localhost:3000/message");
 					const data = await res.json();
-
-					if (data.messages && data.messages.length > 0) {
-						renderInterceptedData(data.messages);
-					} else {
-						logOutput.innerHTML += `<div class="entry">[INFO] Server response empty. No messages found.</div>`;
-					}
-				} catch (error) {
-					logOutput.innerHTML += `<div class="entry" style="color:red">[ERROR] Failed to connect to server: ${error.message}</div>`;
+					if (data.messages) renderList(data.messages);
+				} catch (e) {
+					feed.innerHTML = `<div class="warning-footer">UNABLE TO REACH ENDPOINT: ${e.message}</div>`;
 				}
 			}
 
-			function renderInterceptedData(messages) {
-				logOutput.innerHTML = `<div class="entry">[SYSTEM] Intercepted ${messages.length} data packets.</div>`;
-				messages.forEach((msg, index) => {
-					const entry = document.createElement("div");
-					entry.className = "entry";
-					entry.innerHTML = `
-                    <div><span class="timestamp">[${new Date().toLocaleTimeString()}]</span> PACKET #${index + 1} INTERCEPTED</div>
-                    <div>SOURCE_ID: UNKNOWN (ENCRYPTED)</div>
-                    <div>AUTHENTICATION_TAG: <span class="failure-label">MISSING_KEY</span></div>
-                    <div>DATA_PAYLOAD:</div>
-                    <code class="raw-data">
-                        {
-                            "iv": "${msg.iv}",
-                            "ciphertext": "${msg.ciphertext}"
-                        }
-                    </code>
-                    <div class="failure-label">>> DECRYPTION_FAILED: AES-GCM Key Required</div>
-                `;
-					logOutput.appendChild(entry);
+			function renderList(messages) {
+				feed.innerHTML = "";
+				messages.forEach((msg, i) => {
+					const row = document.createElement("div");
+					row.className = "packet-row";
+					row.innerHTML = `
+                        <div class="packet-top">
+                            <span style="font-weight:600">Packet #${i + 1042}</span>
+                            <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                        </div>
+                        <div class="payload">
+                            { "iv": "${msg.iv}", "data": "${msg.ciphertext.slice(0, 50)}..." }
+                        </div>
+                        <div class="warning-footer">
+                            ⚠️ DECRYPTION_FAILED: Authentication Tag Invalid or Key Missing
+                        </div>
+                    `;
+					feed.appendChild(row);
 				});
-				logOutput.scrollTop = logOutput.scrollHeight;
 			}
 
-			startIntercept();
-			// setInterval(startIntercept, 5000);
+			runAudit();
+			setInterval(runAudit, 5000);
 		</script>
 	</body>
 </html>

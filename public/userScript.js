@@ -4,50 +4,74 @@ const decryptionSecretElement = document.getElementById("decryptionSecret");
 const decryptionSecretModal = document.getElementById("decryptionSecretModal");
 const overlay = document.getElementById("overlay");
 const role = new URLSearchParams(window.location.search).get("role");
-const modal = document.getElementById("changeKeyModal");
+const changeKeyModal = document.getElementById("changeKeyModal");
 const errorElement = document.getElementById("error");
 
 let secretKey = "";
 
+function showKeyPrompt() {
+	decryptionSecretModal.style.display = "block";
+	overlay.style.display = "block";
+}
 function hideModal() {
 	decryptionSecretModal.style.display = "none";
 	overlay.style.display = "none";
 
-	modal.style.display = "none";
+	changeKeyModal.style.display = "none";
 	overlay.style.display = "none";
 }
 function scrollToBottom() {
 	messagesElement.scrollTop = messagesElement.scrollHeight;
 }
 
+loadMessages();
+async function loadMessages() {
+	const messages = await fetchMessages();
+	renderMessages(messages);
+}
 // ==========================================================================
 // change key
 // ==========================================================================
 function showChangeKeyModal() {
-	modal.style.display = "block";
+	changeKeyModal.style.display = "block";
 	overlay.style.display = "block";
 }
-function changeKey() {
+async function changeKey() {
 	const newKey = document.getElementById("newKey").value.trim();
-	if (!newKey) return alert("Please enter a key!");
+	const oldKey = document.getElementById("oldKey").value.trim();
+	if (!newKey || !oldKey) return alert("Please enter all keys!");
+	if (oldKey !== secretKey) return alert("Please enter the old key!");
+	if (oldKey === newKey) return;
+
 	localStorage.setItem("secretKey", newKey);
-	hideModal();
+
+	// const oldKey = secretKey;
 	secretKey = newKey;
+	hideModal();
+
+	const messages = await fetchMessages();
+
+	const decryptedMessages = await Promise.all(messages.map(async (message) => await decryptData(message, oldKey)));
+	const encryptedMessages = await Promise.all(decryptedMessages.map(async (message) => await encryptData(message, newKey)));
+
+	try {
+		fetch("http://localhost:3000/changekey", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				key: newKey,
+				messages: encryptedMessages,
+			}),
+		});
+		alert("Key changed successfully!");
+	} catch (e) {
+		log("error:", e);
+	}
+
 	document.location.reload();
 }
-
-// ==========================================================================
-// fetch messages
-// ==========================================================================
-document.addEventListener("DOMContentLoaded", async () => {
-	const secretKeyStorage = localStorage.getItem("secretKey");
-
-	if (secretKeyStorage) {
-		log("using storage key");
-		secretKey = secretKeyStorage;
-		hideModal();
-	}
-});
 
 async function submitKey() {
 	secretKey = decryptionSecretElement.value.trim();
@@ -55,8 +79,21 @@ async function submitKey() {
 
 	localStorage.setItem("secretKey", secretKey);
 	hideModal();
-	await fetchMessages();
+	await loadMessages();
 }
+
+// ==========================================================================
+// fetch messages
+// ==========================================================================
+document.addEventListener("DOMContentLoaded", async () => {
+	if (!role) document.location.href = "index.html";
+	const secretKeyStorage = localStorage.getItem("secretKey");
+
+	if (secretKeyStorage) {
+		secretKey = secretKeyStorage;
+		hideModal();
+	}
+});
 
 async function fetchMessages() {
 	let messagesJSON = { messages: [] };
@@ -73,21 +110,15 @@ async function fetchMessages() {
 
 		return;
 	}
-
-	renderMessages(messagesJSON.messages);
+	return messagesJSON.messages;
 }
-
-fetchMessages();
 
 // ==========================================================================
 // send message
 // ==========================================================================
 async function sendMessage() {
 	const text = messageInput.value.trim();
-	if (!text) {
-		// alert("Please enter a message!");
-		return;
-	}
+	if (!text) return;
 
 	if (!secretKey) {
 		alert("Please enter a key!");
@@ -101,10 +132,7 @@ async function sendMessage() {
 	};
 	messageInput.value = "";
 
-	// messagesElement.scrollTop = messagesElement.scrollHeight;
-
 	const encryptedMessageData = await encryptData(messageData, secretKey);
-	log("sending:", encryptedMessageData.ciphertext);
 	const res = await fetch("http://localhost:3000/message", {
 		method: "POST",
 		headers: {
@@ -127,6 +155,10 @@ async function renderMessages(messages) {
 	messagesElement.innerHTML = "";
 	for (let message of messages) {
 		const decryptedMessage = await decryptData(message, secretKey);
+		if (decryptedMessage.from === "System") {
+			showKeyPrompt();
+			return;
+		}
 		const row = document.createElement("div");
 		let className = decryptedMessage.from === role ? "message-row user" : "message-row other";
 		if (decryptedMessage.from === "System") {
@@ -158,14 +190,14 @@ async function getKey(rawKey) {
 	return await crypto.subtle.importKey("raw", keyData, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
 }
 
-async function encryptData(messageData, password) {
+async function encryptData(messageData, secretKey) {
 	const encoder = new TextEncoder();
 
 	const data = encoder.encode(JSON.stringify(messageData));
 
 	// The IV (Initialization Vector) must be unique for every message
 	const iv = crypto.getRandomValues(new Uint8Array(12));
-	const key = await getKey(password);
+	const key = await getKey(secretKey);
 
 	const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, data);
 
@@ -176,9 +208,9 @@ async function encryptData(messageData, password) {
 	};
 }
 
-async function decryptData(encryptedData, password) {
+async function decryptData(encryptedData, secretKey) {
 	try {
-		const key = await getKey(password);
+		const key = await getKey(secretKey);
 
 		// 1. Convert Base64 strings back to Uint8Arrays
 		const iv = new Uint8Array(
@@ -214,7 +246,7 @@ async function log(...args) {
 			"Content-Type": "application/json",
 		},
 		body: JSON.stringify({
-			text: args.join(" "),
+			text: "[" + role + "] " + args.join(" "),
 		}),
 	});
 }

@@ -12,6 +12,7 @@ app.use(express.json());
 // ==========================================================================
 const jsonTemplate = {
 	messages: [],
+	keyChangeAt: 0,
 };
 
 function readData() {
@@ -65,10 +66,23 @@ app.post("/message", (req, res) => {
 	const messages = readData();
 	const newMessage = req.body;
 
+	console.log("new message: ", newMessage);
 	messages.messages.push(newMessage);
 
 	writeData(messages);
 
+	res.send(messages);
+});
+
+app.post("/changekey", (req, res) => {
+	console.log("Change Key");
+
+	const messages = req.body;
+	const newMessages = structuredClone(jsonTemplate);
+	newMessages.messages = messages.messages;
+	console.log("new message", newMessages);
+
+	writeData(newMessages);
 	res.send(messages);
 });
 
