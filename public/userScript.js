@@ -40,7 +40,7 @@ async function changeKey() {
 	const newSecretKey = document.getElementById("newSecretKeyInput").value.trim();
 	const oldSecretKey = document.getElementById("oldSecretKeyInput").value.trim();
 	if (!newSecretKey || !oldSecretKey) return alert("Please enter all keys!");
-	if (oldSecretKey !== secretKey) return alert("Please enter the old key!");
+	if (oldSecretKey !== secretKey) return alert("Please enter the correct old key!");
 	if (oldSecretKey === newSecretKey) return;
 
 	localStorage.setItem("secretKey", newSecretKey);
@@ -154,11 +154,11 @@ chatMessageInput.addEventListener("keypress", (e) => {
 async function renderMessages(messages) {
 	if (!messages) {
 		errorMessageElement.style.display = "block";
-		errorMessageElement.innerHTML = `<div class="entry" style="color:red">[ERROR] Failed to fetch messages from server</div>`;
+		errorMessageElement.innerHTML = `<div class="entry" style="color:red">Failed to fetch messages from server</div>`;
 
 		setTimeout(() => {
 			errorMessageElement.style.display = "none";
-		}, 2000);
+		}, 5000);
 		return;
 	}
 
