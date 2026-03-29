@@ -8,29 +8,29 @@
 	</head>
 
 	<body>
-		<div class="overlay" id="overlay"></div>
+		<div class="overlay" id="modalOverlay"></div>
 		<!-- modal for change key -->
-		<div class="modal" id="changeKeyModal">
+		<div class="modal" id="changeKeyDialog">
 			<h2>Change Key</h2>
-			<label for="newKey">
-				<label for="oldKey">Old Key</label>
-				<input type="password" id="oldKey" name="oldKey" />
-				<label for="newKey">New Key</label>
-				<input type="password" id="newKey" name="newKey" />
+			<label for="oldSecretKeyInput">
+				<label for="oldSecretKeyInput">Old Key</label>
+				<input type="password" id="oldSecretKeyInput" name="oldSecretKeyInput" />
+				<label for="newSecretKeyInput">New Key</label>
+				<input type="password" id="newSecretKeyInput" name="newSecretKeyInput" />
 				<button onclick="changeKey()">Submit</button>
 				<button onclick="hideModal()" class="btnCancel">Cancel</button>
 			</label>
 		</div>
 
 		<!-- modal for key first time -->
-		<div class="modal" id="decryptionSecretModal">
-			<label for="secret">Enter Decryption Secret Key</label>
-			<input type="password" id="decryptionSecret" />
+		<div class="modal" id="secretKeyPromptModal">
+			<label for="secretKeyInput">Enter Decryption Secret Key</label>
+			<input type="password" id="secretKeyInput" />
 			<button onclick="submitKey()">Submit</button>
 		</div>
 
 		<!-- error -->
-		<div class="error" id="error"></div>
+		<div class="error" id="errorMessage"></div>
 
 		<!-- chat -->
 		<div class="chat">
@@ -39,7 +39,7 @@
 				<button onclick="showChangeKeyModal()">Change Key</button>
 			</div>
 
-			<div class="chat-messages" id="messages">
+			<div class="chat-messages" id="chatMessagesContainer">
 				<!-- <div class="message-row other">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="avatar">
 						<path
@@ -58,7 +58,7 @@
 			</div>
 
 			<div class="chat-input">
-				<input type="text" id="messageInput" placeholder="Type message..." />
+				<input type="text" id="chatMessageInput" placeholder="Type message..." />
 				<button onclick="sendMessage()">Send</button>
 			</div>
 		</div>

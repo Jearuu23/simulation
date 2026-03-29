@@ -1,27 +1,27 @@
-const messagesElement = document.getElementById("messages");
-const messageInput = document.getElementById("messageInput");
-const decryptionSecretElement = document.getElementById("decryptionSecret");
-const decryptionSecretModal = document.getElementById("decryptionSecretModal");
-const overlay = document.getElementById("overlay");
+const chatMessagesContainer = document.getElementById("chatMessagesContainer");
+const chatMessageInput = document.getElementById("chatMessageInput");
+const secretKeyInputElement = document.getElementById("secretKeyInput");
+const secretKeyPromptModal = document.getElementById("secretKeyPromptModal");
+const modalOverlay = document.getElementById("modalOverlay");
 const role = new URLSearchParams(window.location.search).get("role");
-const changeKeyModal = document.getElementById("changeKeyModal");
-const errorElement = document.getElementById("error");
+const changeKeyDialog = document.getElementById("changeKeyDialog");
+const errorMessageElement = document.getElementById("errorMessage");
 
 let secretKey = "";
 
 function showKeyPrompt() {
-	decryptionSecretModal.style.display = "block";
-	overlay.style.display = "block";
+	secretKeyPromptModal.style.display = "block";
+	modalOverlay.style.display = "block";
 }
 function hideModal() {
-	decryptionSecretModal.style.display = "none";
-	overlay.style.display = "none";
+	secretKeyPromptModal.style.display = "none";
+	modalOverlay.style.display = "none";
 
-	changeKeyModal.style.display = "none";
-	overlay.style.display = "none";
+	changeKeyDialog.style.display = "none";
+	modalOverlay.style.display = "none";
 }
 function scrollToBottom() {
-	messagesElement.scrollTop = messagesElement.scrollHeight;
+	chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
 }
 
 loadMessages();
@@ -33,26 +33,26 @@ async function loadMessages() {
 // change key
 // ==========================================================================
 function showChangeKeyModal() {
-	changeKeyModal.style.display = "block";
-	overlay.style.display = "block";
+	changeKeyDialog.style.display = "block";
+	modalOverlay.style.display = "block";
 }
 async function changeKey() {
-	const newKey = document.getElementById("newKey").value.trim();
-	const oldKey = document.getElementById("oldKey").value.trim();
-	if (!newKey || !oldKey) return alert("Please enter all keys!");
-	if (oldKey !== secretKey) return alert("Please enter the old key!");
-	if (oldKey === newKey) return;
+	const newSecretKey = document.getElementById("newSecretKeyInput").value.trim();
+	const oldSecretKey = document.getElementById("oldSecretKeyInput").value.trim();
+	if (!newSecretKey || !oldSecretKey) return alert("Please enter all keys!");
+	if (oldSecretKey !== secretKey) return alert("Please enter the old key!");
+	if (oldSecretKey === newSecretKey) return;
 
-	localStorage.setItem("secretKey", newKey);
+	localStorage.setItem("secretKey", newSecretKey);
 
 	// const oldKey = secretKey;
-	secretKey = newKey;
+	secretKey = newSecretKey;
 	hideModal();
 
 	const messages = await fetchMessages();
 
-	const decryptedMessages = await Promise.all(messages.map(async (message) => await decryptData(message, oldKey)));
-	const encryptedMessages = await Promise.all(decryptedMessages.map(async (message) => await encryptData(message, newKey)));
+	const decryptedMessages = await Promise.all(messages.map(async (message) => await decryptData(message, oldSecretKey)));
+	const encryptedMessages = await Promise.all(decryptedMessages.map(async (message) => await encryptData(message, newSecretKey)));
 
 	try {
 		fetch("http://localhost:3000/changekey", {
@@ -61,7 +61,7 @@ async function changeKey() {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				key: newKey,
+				key: newSecretKey,
 				messages: encryptedMessages,
 			}),
 		});
@@ -74,7 +74,7 @@ async function changeKey() {
 }
 
 async function submitKey() {
-	secretKey = decryptionSecretElement.value.trim();
+	secretKey = secretKeyInputElement.value.trim();
 	if (!secretKey) return alert("Please enter a key!");
 
 	localStorage.setItem("secretKey", secretKey);
@@ -101,11 +101,11 @@ async function fetchMessages() {
 		const res = await fetch("http://localhost:3000/message");
 		messagesJSON = await res.json();
 	} catch (error) {
-		errorElement.style.display = "block";
-		errorElement.innerHTML = `<div class="entry" style="color:red">[ERROR] Failed to connect to server: ${error.message}</div>`;
+		errorMessageElement.style.display = "block";
+		errorMessageElement.innerHTML = `<div class="entry" style="color:red">[ERROR] Failed to connect to server: ${error.message}</div>`;
 
 		setTimeout(() => {
-			errorElement.style.display = "none";
+			errorMessageElement.style.display = "none";
 		}, 5000);
 
 		return;
@@ -117,7 +117,7 @@ async function fetchMessages() {
 // send message
 // ==========================================================================
 async function sendMessage() {
-	const text = messageInput.value.trim();
+	const text = chatMessageInput.value.trim();
 	if (!text) return;
 
 	if (!secretKey) {
@@ -130,7 +130,7 @@ async function sendMessage() {
 		text: text,
 		time: new Date().toISOString(),
 	};
-	messageInput.value = "";
+	chatMessageInput.value = "";
 
 	const encryptedMessageData = await encryptData(messageData, secretKey);
 	const res = await fetch("http://localhost:3000/message", {
@@ -144,7 +144,7 @@ async function sendMessage() {
 	renderMessages(data.messages);
 }
 
-messageInput.addEventListener("keypress", (e) => {
+chatMessageInput.addEventListener("keypress", (e) => {
 	if (e.key === "Enter") sendMessage();
 });
 
@@ -152,7 +152,7 @@ messageInput.addEventListener("keypress", (e) => {
 // render messages
 // ==========================================================================
 async function renderMessages(messages) {
-	messagesElement.innerHTML = "";
+	chatMessagesContainer.innerHTML = "";
 	for (let message of messages) {
 		const decryptedMessage = await decryptData(message, secretKey);
 		if (decryptedMessage.from === "System") {
@@ -163,7 +163,7 @@ async function renderMessages(messages) {
 		let className = decryptedMessage.from === role ? "message-row user" : "message-row other";
 		if (decryptedMessage.from === "System") {
 			row.innerHTML = `<div class="${className} system"><div class="message">${decryptedMessage.text}</div></div>`;
-			messagesElement.appendChild(row);
+			chatMessagesContainer.appendChild(row);
 			continue;
 		}
 		row.innerHTML = `
@@ -174,7 +174,7 @@ async function renderMessages(messages) {
 						</svg>
 						<div class="message">${decryptedMessage.text}</div>
 					</div>`;
-		messagesElement.appendChild(row);
+		chatMessagesContainer.appendChild(row);
 	}
 	scrollToBottom();
 }
