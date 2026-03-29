@@ -152,6 +152,25 @@ chatMessageInput.addEventListener("keypress", (e) => {
 // render messages
 // ==========================================================================
 async function renderMessages(messages) {
+	if (!messages) {
+		errorMessageElement.style.display = "block";
+		errorMessageElement.innerHTML = `<div class="entry" style="color:red">[ERROR] Failed to fetch messages from server</div>`;
+
+		setTimeout(() => {
+			errorMessageElement.style.display = "none";
+		}, 2000);
+		return;
+	}
+
+	if (messages.length === 0) {
+		console.log("no messages");
+
+		const row = document.createElement("div");
+		row.innerHTML = `<div class="message-row user">Start Chatting<div/>`;
+		chatMessagesContainer.appendChild(row);
+		return;
+	}
+
 	chatMessagesContainer.innerHTML = "";
 	for (let message of messages) {
 		const decryptedMessage = await decryptData(message, secretKey);
@@ -212,7 +231,7 @@ async function decryptData(encryptedData, secretKey) {
 	try {
 		const key = await getKey(secretKey);
 
-		// 1. Convert Base64 strings back to Uint8Arrays
+		// Convert Base64 strings back to Uint8Arrays
 		const iv = new Uint8Array(
 			atob(encryptedData.iv)
 				.split("")
@@ -224,10 +243,10 @@ async function decryptData(encryptedData, secretKey) {
 				.map((c) => c.charCodeAt(0)),
 		);
 
-		// 2. Decrypt using Web Crypto API
+		// Decrypt using Web Crypto API
 		const decryptedBuffer = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, ciphertext);
 
-		// 3. Decode the bytes back into a JSON string, then an object
+		// Decode the bytes back into a JSON string, then an object
 		const decoder = new TextDecoder();
 		return JSON.parse(decoder.decode(decryptedBuffer));
 	} catch (error) {
